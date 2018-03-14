@@ -5,140 +5,190 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Input;
+using AntiVirus.Source.Input;
+using AntiVirus.Source.UI;
+using AntiVirus.Source.Characters;
 
 namespace AntiVirus.Source
 {
-	public class BattleScene
+	/// <summary>
+	/// Battle Scene that contains everything that happens during combat
+	/// </summary>
+	class BattleScene
 	{
-		#region Constants
+		private TileManager tileManager;
+		private Character mainCharacter;
+		private Character jesusChrist;
+		private Character adolfHilter;
+		private Character albertEinstein;
+		private Character georgeWashington;
 
-		public const int TILE_WIDTH = 64;
-		public const int TILE_HEIGHT = 64;
+		private Character currentCharacter;
+		private Camera camera;
 
+		private MouseState currentMouseState;
+		private MouseState previousMouseState;
+		private Vector2 cursorPosition;
+		private Texture2D cursorTexture;
+
+		// TODO: Create UI Manager class and tie it to an Input Manager class
+		List<UIClickable> buttons;
+
+		#region Textures
+
+		Texture2D testCharacterSpriteSheet;
+		Texture2D jesusSpriteSheet;
+		Texture2D hitlerSpriteSheet;
+		Texture2D einsteinSpriteSheet;
+		Texture2D washingtonSpriteSheet;
+
+		Texture2D testLevelTileSheet;
 		#endregion
 
-		private Tile[,] tileset;
-		private int tilesetWidth;
-		private int tilesetHeight;
-
-		private BattleSceneGameObject currentObject;
-		private Tile tileToMoveTo;
-		private Texture2D tilesheet;
-		private Rectangle[] tileSourceRectangles;
-
-		public BattleScene(int tilesetWidth, int tilesetHeight, Texture2D tilesheet)
+		/// <summary>
+		///  Initialize all manager classes in this level. Manager classes switch between
+		///  battle scenes and overworld scenes
+		/// </summary>
+		public BattleScene()
 		{
-			this.tilesetWidth = tilesetWidth;
-			this.tilesetHeight = tilesetHeight;
-			this.tilesheet = tilesheet;
-			tileset = new Tile[tilesetWidth, tilesetHeight];
-			Random random = new Random();
+			Vector2 minBounds = Vector2.Zero;
+			Vector2 maxBounds = new Vector2((20 * 64), (15 * 64));
+			camera = new Camera(new Vector2(0.0f, 0.0f), minBounds, maxBounds);
 
-			for (int x = 0; x < this.tilesetWidth; ++x)
-			{
-				for (int y = 0; y < this.tilesetHeight; ++y)
-				{
-					Tile tile = new Tile
-					{
-						position = new Vector2(x * TILE_WIDTH, y * TILE_HEIGHT),
-						tileID = random.Next(0, 4),
-						occupied = false
-					};
-
-					tileset[x, y] = tile;
-				}
-			}
-
-			// TODO: Implement dynamic tile loading based on tile mapping
-			tileSourceRectangles = new Rectangle[4];
-			tileSourceRectangles[0] = new Rectangle(0, 0, TILE_WIDTH, TILE_HEIGHT);
-			tileSourceRectangles[1] = new Rectangle(64, 0, TILE_WIDTH, TILE_HEIGHT);
-			tileSourceRectangles[2] = new Rectangle(128, 0, TILE_WIDTH, TILE_HEIGHT);
-			tileSourceRectangles[3] = new Rectangle(192, 0, TILE_WIDTH, TILE_HEIGHT);
+			// UI stuff
+			buttons = new List<UIClickable>();
 		}
 
+		public void LoadContent(ContentManager Content)
+		{
+			// Load all the sprite sheets
+			testCharacterSpriteSheet = Content.Load<Texture2D>("Images/character_test");
+			jesusSpriteSheet = Content.Load<Texture2D>("Images/Characters/sprites_characters_jesus1");
+			hitlerSpriteSheet = Content.Load<Texture2D>("Images/Characters/sprites_characters_hitler1");
+			einsteinSpriteSheet = Content.Load<Texture2D>("Images/Characters/sprites_characters_einstein1");
+			washingtonSpriteSheet = Content.Load<Texture2D>("Images/Characters/sprites_characters_washington1");
+			testLevelTileSheet = Content.Load<Texture2D>("Images/TileSets/PathAndObjects");
+			cursorTexture = Content.Load<Texture2D>("Images/UI/Cursor");
+			// Load UI Elements
+
+
+			// Create the character objects after their respective spritesheets have been loaded
+			// Each playable characte object will have a UI Select associated with them for either choosing them
+			// as the current character or viewing their stats
+			mainCharacter = new MainCharacter(testCharacterSpriteSheet);
+			mainCharacter.UICharacterSelect.UIClicked += SetCurrentCharacter;
+			buttons.Add(mainCharacter.UICharacterSelect);
+
+			albertEinstein = new AlbertEinstein(einsteinSpriteSheet);
+			albertEinstein.UICharacterSelect.UIClicked += SetCurrentCharacter;
+			buttons.Add(albertEinstein.UICharacterSelect);
+			albertEinstein.Translate(new Vector2(320, 320));
+
+			// Set up the game
+			tileManager = new TileManager(20, 15, testLevelTileSheet);
+			//currentCharacter = mainCharacter;
+		}
+		
 		public void Update(GameTime gameTime)
 		{
-			UpdateGameObjects();
+			ReceiveInput();
+			tileManager.Update(gameTime);
+
+			// Update Characters
+			mainCharacter.Update(gameTime);
+			albertEinstein.Update(gameTime);
 		}
 
-		/// <summary>
-		/// Loop through the tileset and draw each tile according to the tile id
-		/// </summary>
-		public void Draw(SpriteBatch spriteBatch)
+		public void Draw(SpriteBatch spriteBatch, GameTime gameTime)
 		{
-			for (int x = 0; x < this.tilesetWidth; ++x)
+			spriteBatch.Begin(transformMatrix: camera.GetModelMatrix());
+
+			tileManager.Draw(spriteBatch);
+
+			// Draw Characters
+			mainCharacter.Draw(spriteBatch, gameTime);
+			albertEinstein.Draw(spriteBatch, gameTime);
+			spriteBatch.Draw(cursorTexture, cursorPosition, Color.White);
+
+			spriteBatch.End();
+		}
+
+		public void ReceiveInput()
+		{
+			CheckKeyboardInput(Keyboard.GetState());
+			CheckMouseInput(Mouse.GetState());
+		}
+
+		private void CheckKeyboardInput(KeyboardState keyboardState)
+		{
+			// TODO: Remove magic numbers from camera translations
+			Vector2 cameraTranslation = Vector2.Zero;
+
+			if (keyboardState.IsKeyDown(Keys.A))
+				cameraTranslation += new Vector2(-3.5f, 0);
+
+			if (keyboardState.IsKeyDown(Keys.D))
+				cameraTranslation += new Vector2(3.5f, 0);
+
+			if (keyboardState.IsKeyDown(Keys.W))
+				cameraTranslation += new Vector2(0, -3.5f);
+
+			if (keyboardState.IsKeyDown(Keys.S))
+				cameraTranslation += new Vector2(0, 3.5f);
+
+			if (keyboardState.IsKeyDown(Keys.LeftShift))
+				cameraTranslation *= 0.5f;
+
+			MoveCameraAroundBattlefield(cameraTranslation);
+		}
+
+		// Check all buttons and then we can check character shit
+		private void CheckMouseInput(MouseState mouseState)
+		{
+			previousMouseState = currentMouseState;
+			currentMouseState = mouseState;
+
+			Vector2 mouseTranslation = XnaHelpers.Point2Vector(currentMouseState.Position) - XnaHelpers.Point2Vector(previousMouseState.Position);
+			cursorPosition += mouseTranslation;
+
+			bool clickHandled = false;
+
+			if (mouseState.LeftButton == ButtonState.Pressed)
 			{
-				for (int y = 0; y < this.tilesetHeight; ++y)
+				foreach (UIClickable button in buttons)
 				{
-					Rectangle sourceRectangle = tileSourceRectangles[this.tileset[x, y].tileID];
-					Rectangle destinationRectangle = new Rectangle(x * TILE_WIDTH, y * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT);
-					spriteBatch.Draw(this.tilesheet, destinationRectangle, sourceRectangle, Color.White);
+					if (button.Bounds.Contains(cursorPosition))
+					{
+						clickHandled = true;
+						button.WasUIClicked(clickHandled);
+					}
+				}
+
+				// We already did something with our mouse click, don't have to have ui click overlap
+				if (!clickHandled && currentCharacter != null)
+				{
+					Vector2 mousePosition = new Vector2(mouseState.Position.X, mouseState.Position.Y);
+					Vector2 worldPosition = mousePosition + camera.GetScaledPosition();
+					tileManager.MoveObjectToTileAtPosition(currentCharacter, cursorPosition);
 				}
 			}
 		}
 
-		/// <summary>
-		/// Find the tile at the position clicked and move the object to that position
-		/// </summary>
-		public void MoveObjectToTileAtPosition(BattleSceneGameObject gameObject, Vector2 position)
+		private void MoveCameraAroundBattlefield(Vector2 moveVector)
 		{
-			int tileX = (int)(position.X / (TILE_WIDTH * Globals.ScaleX));
-			int tileY = (int)(position.Y / (TILE_HEIGHT * Globals.ScaleY));
-
-			if (tileX >= 0 && tileX <= tilesetWidth &&
-				tileY >= 0 && tileY <= tilesetHeight)
-			{
-				tileToMoveTo = tileset[tileX, tileY];
-				tileToMoveTo.currentObject = gameObject;
-				tileToMoveTo.occupied = true;
-				currentObject = gameObject;
-				currentObject.CurrentTile = tileToMoveTo;
-			}
+			camera.MoveCamera(moveVector);
+			cursorPosition += moveVector;
 		}
 
-		private void UpdateGameObjects()
+		#region Events
+
+		public void SetCurrentCharacter(Object sender, UIClickable.UIClickedEventArgs e)
 		{
-			if (currentObject != null)
-			{
-				Vector2 translationVector = new Vector2();
-
-				// TODO: There has to a better way to do this
-				if (currentObject.Position.X < tileToMoveTo.position.X)
-				{
-					translationVector += new Vector2(1.0f, 0.0f);
-				} 
-				else if (currentObject.Position.X > tileToMoveTo.position.X)
-				{
-					translationVector += new Vector2(-1.0f, 0.0f);
-				}
-				else if (currentObject.Position.Y < tileToMoveTo.position.Y)
-				{
-					translationVector += new Vector2(0.0f, 1.0f);
-				}
-				else if (currentObject.Position.Y > tileToMoveTo.position.Y)
-				{
-					translationVector += new Vector2(0.0f, -1.0f);
-				}
-
-				currentObject.Translate(translationVector);
-
-				if (currentObject.Position == tileToMoveTo.position)
-				{
-					currentObject.ReachedDestination();
-					currentObject = null;
-				}
-			}
+			currentCharacter = (Character)e.Parent;
 		}
 
-
-		public struct Tile
-		{
-			public Vector2 position;
-			public GameObject currentObject;
-
-			public int tileID;
-			public bool occupied;
-		}
+		#endregion
 	}
 }

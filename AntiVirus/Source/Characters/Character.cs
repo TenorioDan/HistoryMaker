@@ -24,27 +24,26 @@ namespace AntiVirus.Source
 
 		#region Constants
 
-		private const int animationCount = 8;
-		private const int IDLE_ANIMATION_UP_INDEX = 0;
-		private const int IDLE_ANIMATION_LEFT_INDEX = 1;
-		private const int IDLE_ANIMATION_DOWN_INDEX = 2;
-		private const int IDLE_ANIMATION_RIGHT_INDEX = 3;
-		private const int WALK_ANIMATION_UP_INDEX = 4;
-		private const int WALK_ANIMATION_LEFT_INDEX = 5;
-		private const int WALK_ANIMATION_DOWN_INDEX = 6;
-		private const int WALK_ANIMATION_RIGHT_INDEX = 7;
+		protected int animationCount = 8;
+		protected int IDLE_ANIMATION_UP_INDEX = 0;
+		protected int IDLE_ANIMATION_LEFT_INDEX = 1;
+		protected int IDLE_ANIMATION_DOWN_INDEX = 2;
+		protected int IDLE_ANIMATION_RIGHT_INDEX = 3;
+		protected int WALK_ANIMATION_UP_INDEX = 4;
+		protected int WALK_ANIMATION_LEFT_INDEX = 5;
+		protected int WALK_ANIMATION_DOWN_INDEX = 6;
+		protected int WALK_ANIMATION_RIGHT_INDEX = 7;
 
 		#endregion
 
 		#region PrivateVariables
 
-		private AnimatedSprite animationSprite;
-		private Vector2 lastTranslation;
-
 		#endregion
 
 		#region ProtectedVariables
 
+		protected AnimatedSprite animationSprite;
+		protected Vector2 lastTranslation;
 		protected AnimationState currentAnimationState;
 		protected float initiative;
 		protected float moveDistance;
@@ -76,20 +75,10 @@ namespace AntiVirus.Source
 			this.Width = 64;
 			this.Height = 64;
 
-			// Idle Animations
-			animationSprite.AddAnimation(1, 0, new Vector2(0, Height * 0)); // Idle Up
-			animationSprite.AddAnimation(1, 0, new Vector2(0, Height * 1)); // Idle Left
-			animationSprite.AddAnimation(1, 0, new Vector2(0, Height * 2)); // Idle Down
-			animationSprite.AddAnimation(1, 0, new Vector2(0, Height * 3)); // Idle Right
-
-			// Movement Animations
-			animationSprite.AddAnimation(8, 60, new Vector2(64, Height * 0)); // Walking Up
-			animationSprite.AddAnimation(8, 60, new Vector2(64, Height * 1)); // Walking Left
-			animationSprite.AddAnimation(8, 60, new Vector2(64, Height * 2)); // Walking Down
-			animationSprite.AddAnimation(8, 60, new Vector2(64, Height * 3)); // Walking Right
-
-			animationSprite.SetAnimation(2);
 			currentAnimationState = AnimationState.IDLE_DOWN;
+
+			// UI Stuff
+			UICharacterSelect = new UIClickable(this.Position, this.Width, this.Height);
 		}
 
 		public override void Update(GameTime gameTime)
@@ -102,6 +91,10 @@ namespace AntiVirus.Source
 			animationSprite.Draw(spriteBatch, gameTime, this.Position, new Vector2(Width, Height));
 		}
 
+		/// <summary>
+		/// Move the character across the screen and change animations accordingly
+		/// </summary>
+		/// <param name="translationVector"></param>
 		public override void Translate(Vector2 translationVector)
 		{
 			base.Translate(translationVector);
@@ -127,6 +120,9 @@ namespace AntiVirus.Source
 			}
 		}
 
+		/// <summary>
+		/// Once the character has reached their destination set the appropriate animation states
+		/// </summary>
 		public override void ReachedDestination()
 		{
 			base.ReachedDestination();

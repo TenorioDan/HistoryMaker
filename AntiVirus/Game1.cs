@@ -13,7 +13,7 @@ namespace AntiVirus
 		GraphicsDeviceManager graphics;
 		SpriteBatch spriteBatch;
 
-		Level testLevel;
+		BattleScene testLevel;
 
 		public Game1()
 		{
@@ -27,7 +27,7 @@ namespace AntiVirus
 			Globals.ScaleX = graphics.PreferredBackBufferWidth / 1024.0f;
 			Globals.ScaleY = graphics.PreferredBackBufferHeight / 576.0f;
 
-			this.IsMouseVisible = true;
+			//this.IsMouseVisible = true;
 			
 			Content.RootDirectory = "Content";
 		}
@@ -41,7 +41,7 @@ namespace AntiVirus
 		protected override void Initialize()
 		{
 			// TODO: Add your initialization logic here
-			testLevel = new Level();
+			testLevel = new BattleScene();
 			base.Initialize();
 		}
 

@@ -36,6 +36,5 @@ namespace AntiVirus
 			get { return resolutionHeight; }
 			set { resolutionHeight = value; }
 		}
-
 	}
 }

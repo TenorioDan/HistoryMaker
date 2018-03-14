@@ -14,7 +14,7 @@ namespace AntiVirus.Source
 	/// happens to the game object it is attached to. Character specific UI may need this even more
 	/// such as changing health bars, portraits, and abilities
 	/// </summary>
-	public class UIClickable
+	public class UIClickable : UIElement
 	{
 		#region Properties
 
@@ -23,8 +23,6 @@ namespace AntiVirus.Source
 		{
 			get { return bounds; }
 		}
-
-		
 
 		// TODO: Create new UIClickable class that is independent of game objects. Menu UI should have
 		// functionality that does not depend on a Game Object. 
@@ -36,9 +34,7 @@ namespace AntiVirus.Source
 
 		public UIClickable(Vector2 position, int width, int height)
 		{
-			int scaledWidth = (int)(width * Globals.ScaleX);
-			int scaledHeight = (int)(height * Globals.ScaleY);
-			bounds = new Rectangle((int)position.X, (int)position.Y, scaledWidth, scaledHeight);
+			bounds = new Rectangle((int)position.X, (int)position.Y, width, height);
 		}
 
 		public void WasUIClicked(bool wasClicked)
@@ -59,21 +55,21 @@ namespace AntiVirus.Source
 			UIClicked?.Invoke(this, e);
 		}
 
-		public void Translate(Vector2 translationVector)
-		{
-			this.bounds.X += (int)translationVector.X;
-			this.bounds.Y += (int)translationVector.Y;
-		}
-
-		public void ResizeBounds(int width, int height)
-		{
-			this.bounds.Width = (int)(width * Globals.ScaleX);
-			this.bounds.Height = (int)(height * Globals.ScaleY);
-		}
-
 		public class UIClickedEventArgs : EventArgs
 		{
 			public GameObject Parent { get; set; }
 		}
+
+		public void Translate(Vector2 translationVector)
+		{
+			this.bounds.X += (int)(translationVector.X);
+			this.bounds.Y += (int)(translationVector.Y);
+		}
+
+		public void ResizeBounds(int width, int height)
+		{
+			this.bounds.Width = (int)(width);
+			this.bounds.Height = (int)(height);
+		}		
 	}
 }
