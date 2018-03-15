@@ -10,13 +10,7 @@ namespace AntiVirus.Source
 {
 	public abstract class BattleSceneGameObject : GameObject
 	{
-		protected TileManager.Tile currentTile;
-
-		public TileManager.Tile CurrentTile
-		{
-			get { return currentTile; }
-			set { currentTile = value; }
-		}
+		public TileManager.Tile CurrentTile { get; set; }
 
 		public override void Translate(Vector2 translationVector)
 		{

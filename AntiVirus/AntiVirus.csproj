@@ -50,7 +50,7 @@
     <Compile Include="Game1.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Source\Characters\AlbertEinstein.cs" />
+    <Compile Include="Source\Characters\Heroes.cs" />
     <Compile Include="Source\Characters\MainCharacter.cs" />
     <Compile Include="Source\TileManager.cs" />
     <Compile Include="Source\BattleSceneGameObject.cs" />

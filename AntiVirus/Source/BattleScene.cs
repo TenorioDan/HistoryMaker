@@ -25,6 +25,9 @@ namespace AntiVirus.Source
 		private Character albertEinstein;
 		private Character georgeWashington;
 
+		public List<Character> party;
+		public Queue<Character> turnQueue;
+
 		private Character currentCharacter;
 		private Camera camera;
 
@@ -59,6 +62,10 @@ namespace AntiVirus.Source
 
 			// UI stuff
 			buttons = new List<UIClickable>();
+
+			// Get battle ready
+			party = new List<Character>();
+			turnQueue = new Queue<Character>();
 		}
 
 		public void LoadContent(ContentManager Content)
@@ -86,6 +93,37 @@ namespace AntiVirus.Source
 			buttons.Add(albertEinstein.UICharacterSelect);
 			albertEinstein.Translate(new Vector2(320, 320));
 
+			jesusChrist = new JesusChrist(jesusSpriteSheet);
+			jesusChrist.UICharacterSelect.UIClicked += SetCurrentCharacter;
+			buttons.Add(jesusChrist.UICharacterSelect);
+			jesusChrist.Translate(new Vector2(64, 64));
+
+			georgeWashington = new GeorgeWashingon(washingtonSpriteSheet);
+			georgeWashington.UICharacterSelect.UIClicked += SetCurrentCharacter;
+			buttons.Add(georgeWashington.UICharacterSelect);
+			georgeWashington.Translate(new Vector2(0, 64));
+
+			// party data
+			Random initiativeRoll = new Random();
+			mainCharacter.Initiative = initiativeRoll.Next(0, 10);
+			jesusChrist.Initiative = initiativeRoll.Next(0, 10);
+			albertEinstein.Initiative = initiativeRoll.Next(0, 10);
+			georgeWashington.Initiative = initiativeRoll.Next(0, 10);
+
+			party.Add(mainCharacter);
+			party.Add(jesusChrist);
+			party.Add(albertEinstein);
+			party.Add(georgeWashington);
+
+			turnQueue.Enqueue(mainCharacter);
+			turnQueue.Enqueue(jesusChrist);
+			turnQueue.Enqueue(albertEinstein);
+			turnQueue.Enqueue(georgeWashington);
+
+			turnQueue.OrderBy(Character => Character.Initiative);
+			currentCharacter = mainCharacter;
+
+			EndTurn();
 			// Set up the game
 			tileManager = new TileManager(20, 15, testLevelTileSheet);
 			//currentCharacter = mainCharacter;
@@ -99,6 +137,11 @@ namespace AntiVirus.Source
 			// Update Characters
 			mainCharacter.Update(gameTime);
 			albertEinstein.Update(gameTime);
+
+			if (currentCharacter.ActionPoints == 0 && !tileManager.PerformingMove)
+			{
+				EndTurn();
+			}
 		}
 
 		public void Draw(SpriteBatch spriteBatch, GameTime gameTime)
@@ -107,9 +150,12 @@ namespace AntiVirus.Source
 
 			tileManager.Draw(spriteBatch);
 
-			// Draw Characters
-			mainCharacter.Draw(spriteBatch, gameTime);
-			albertEinstein.Draw(spriteBatch, gameTime);
+			// Draw party
+			foreach (Character hero in party)
+			{
+				hero.Draw(spriteBatch, gameTime);
+			}
+
 			spriteBatch.Draw(cursorTexture, cursorPosition, Color.White);
 
 			spriteBatch.End();
@@ -178,6 +224,13 @@ namespace AntiVirus.Source
 		private void MoveCameraAroundBattlefield(Vector2 moveVector)
 		{
 			camera.MoveCamera(moveVector);
+		}
+
+		private void EndTurn()
+		{
+			currentCharacter.ActionPoints = 2;
+			currentCharacter = turnQueue.Dequeue();
+			turnQueue.Enqueue(currentCharacter);
 		}
 
 		#region Events

@@ -26,8 +26,12 @@ namespace AntiVirus.Source
 		private Texture2D tilesheet;
 		private Rectangle[] tileSourceRectangles;
 
+		private bool performingMove;
+		public bool PerformingMove { get { return performingMove; } }
+
 		public TileManager(int tilesetWidth, int tilesetHeight, Texture2D tilesheet)
 		{
+			this.performingMove = false;
 			this.tilesetWidth = tilesetWidth;
 			this.tilesetHeight = tilesetHeight;
 			this.tilesheet = tilesheet;
@@ -80,19 +84,27 @@ namespace AntiVirus.Source
 
 		/// <summary>
 		/// Find the tile at the position clicked and move the object to that position
+		/// set the objects previous tile to unoccupied
 		/// </summary>
-		public void MoveObjectToTileAtPosition(BattleSceneGameObject gameObject, Vector2 position)
+		public void MoveObjectToTileAtPosition(Character character, Vector2 position)
 		{
 			int tileX = (int)(position.X / (TILE_WIDTH));
 			int tileY = (int)(position.Y / (TILE_HEIGHT));
 
 			if (tileX >= 0 && tileX <= tilesetWidth &&
-				tileY >= 0 && tileY <= tilesetHeight)
+				tileY >= 0 && tileY <= tilesetHeight && !performingMove)
 			{
+				performingMove = true;
+				character.ActionPoints -= 2;
+
+				Tile previousTile = character.CurrentTile;
+				previousTile.occupied = false;
+
 				tileToMoveTo = tileset[tileX, tileY];
-				tileToMoveTo.currentObject = gameObject;
+				tileToMoveTo.currentObject = character;
 				tileToMoveTo.occupied = true;
-				currentObject = gameObject;
+
+				currentObject = character;
 				currentObject.CurrentTile = tileToMoveTo;
 			}
 		}
@@ -127,6 +139,7 @@ namespace AntiVirus.Source
 				{
 					currentObject.ReachedDestination();
 					currentObject = null;
+					performingMove = false;
 				}
 			}
 		}

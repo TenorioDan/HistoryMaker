@@ -45,9 +45,12 @@ namespace AntiVirus.Source
 		protected AnimatedSprite animationSprite;
 		protected Vector2 lastTranslation;
 		protected AnimationState currentAnimationState;
-		protected float initiative;
-		protected float moveDistance;
+
 		protected string characterName;
+		protected float moveDistance;
+
+		public int Initiative { get; set; }
+		public int ActionPoints { get; set; }
 
 		#endregion
 
@@ -69,14 +72,15 @@ namespace AntiVirus.Source
 
 		public Character(Texture2D spriteSheet)
 		{
+			// animation stuff
 			animationSprite = new AnimatedSprite(spriteSheet, animationCount);
+			currentAnimationState = AnimationState.IDLE_DOWN;
 
 			// TODO: Remove test code
 			this.position = new Vector2(0, 0);
 			this.Width = 64;
 			this.Height = 64;
-
-			currentAnimationState = AnimationState.IDLE_DOWN;
+			this.ActionPoints = 2;
 
 			// UI Stuff
 			UICharacterSelect = new UIClickable(this.Position, this.Width, this.Height);
@@ -98,6 +102,7 @@ namespace AntiVirus.Source
 		/// <param name="translationVector"></param>
 		public override void Translate(Vector2 translationVector)
 		{
+			// Remove two action points for moving
 			base.Translate(translationVector);
 			UICharacterSelect.Translate(translationVector);
 
