@@ -47,6 +47,7 @@ namespace AntiVirus.Source
 		protected AnimationState currentAnimationState;
 		protected float initiative;
 		protected float moveDistance;
+		protected string characterName;
 
 		#endregion
 

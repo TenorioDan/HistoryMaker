@@ -40,6 +40,8 @@ namespace AntiVirus.Source.Characters
 			animationSprite.AddAnimation(8, 60, new Vector2(64, Height * 3)); // Walking Right
 
 			animationSprite.SetAnimation(2);
+
+			characterName = "TestChar";
 		}
 	}
 }

@@ -103,7 +103,7 @@ namespace AntiVirus.Source
 
 		public void Draw(SpriteBatch spriteBatch, GameTime gameTime)
 		{
-			spriteBatch.Begin(transformMatrix: camera.GetModelMatrix());
+			spriteBatch.Begin(transformMatrix: camera.GetViewMatrix());
 
 			tileManager.Draw(spriteBatch);
 
@@ -150,8 +150,7 @@ namespace AntiVirus.Source
 			previousMouseState = currentMouseState;
 			currentMouseState = mouseState;
 
-			Vector2 mouseTranslation = XnaHelpers.Point2Vector(currentMouseState.Position) - XnaHelpers.Point2Vector(previousMouseState.Position);
-			cursorPosition += mouseTranslation;
+			cursorPosition = camera.ScreenToWorld(XnaHelpers.Point2Vector(currentMouseState.Position));
 
 			bool clickHandled = false;
 
@@ -179,7 +178,6 @@ namespace AntiVirus.Source
 		private void MoveCameraAroundBattlefield(Vector2 moveVector)
 		{
 			camera.MoveCamera(moveVector);
-			cursorPosition += moveVector;
 		}
 
 		#region Events

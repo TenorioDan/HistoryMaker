@@ -36,6 +36,8 @@ namespace AntiVirus.Source.Characters
 			animationSprite.AddAnimation(1, 60, new Vector2(0, Height * 0)); // Walking Right
 
 			animationSprite.SetAnimation(2);
+
+			characterName = "Enstein";
 		}
 	}
 }
