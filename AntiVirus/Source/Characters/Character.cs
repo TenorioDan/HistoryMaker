@@ -22,17 +22,15 @@ namespace AntiVirus.Source
 			WALK_DOWN
 		}
 
+		public enum Action
+		{
+			MOVE,
+			ATTACK
+		}
+
 		#region Constants
 
-		protected int animationCount = 8;
-		protected int IDLE_ANIMATION_UP_INDEX = 0;
-		protected int IDLE_ANIMATION_LEFT_INDEX = 1;
-		protected int IDLE_ANIMATION_DOWN_INDEX = 2;
-		protected int IDLE_ANIMATION_RIGHT_INDEX = 3;
-		protected int WALK_ANIMATION_UP_INDEX = 4;
-		protected int WALK_ANIMATION_LEFT_INDEX = 5;
-		protected int WALK_ANIMATION_DOWN_INDEX = 6;
-		protected int WALK_ANIMATION_RIGHT_INDEX = 7;
+		protected const int MAX_ACTION_POINTS = 6;
 
 		#endregion
 
@@ -42,19 +40,35 @@ namespace AntiVirus.Source
 
 		#region ProtectedVariables
 
+		// TODO: Change from upper case to lower case
+		protected int animationCount = 8;
+
+		protected int IDLE_ANIMATION_UP_INDEX = 0;
+		protected int IDLE_ANIMATION_LEFT_INDEX = 1;
+		protected int IDLE_ANIMATION_DOWN_INDEX = 2;
+		protected int IDLE_ANIMATION_RIGHT_INDEX = 3;
+		protected int WALK_ANIMATION_UP_INDEX = 4;
+		protected int WALK_ANIMATION_LEFT_INDEX = 5;
+		protected int WALK_ANIMATION_DOWN_INDEX = 6;
+		protected int WALK_ANIMATION_RIGHT_INDEX = 7;
+
 		protected AnimatedSprite animationSprite;
 		protected Vector2 lastTranslation;
 		protected AnimationState currentAnimationState;
 
 		protected string characterName;
-		protected float moveDistance;
-
-		public int Initiative { get; set; }
-		public int ActionPoints { get; set; }
+		protected float moveDistance;   // Float so stats can have more of an effect on the move distance.
+										// Might make this move distance per action point
+		protected int startingActionPoints;
 
 		#endregion
 
 		#region Properties
+
+		public string CharacterName { get { return this.characterName; } }
+
+		public int Initiative { get; set; }
+		public int ActionPoints { get; set; }
 
 		private UIClickable uiCharacterSelect;
 		public UIClickable UICharacterSelect
@@ -77,10 +91,10 @@ namespace AntiVirus.Source
 			currentAnimationState = AnimationState.IDLE_DOWN;
 
 			// TODO: Remove test code
-			this.position = new Vector2(0, 0);
+			this.Position = new Vector2(0, 0);
 			this.Width = 64;
 			this.Height = 64;
-			this.ActionPoints = 2;
+			this.ActionPoints = this.startingActionPoints = 4;
 
 			// UI Stuff
 			UICharacterSelect = new UIClickable(this.Position, this.Width, this.Height);
@@ -154,6 +168,16 @@ namespace AntiVirus.Source
 			}
 
 			lastTranslation = Vector2.Zero;
+		}
+
+		public void ResetActionPoints()
+		{
+			this.ActionPoints = startingActionPoints;
+		}
+
+		public void PerformAction(Action action)
+		{
+
 		}
 	}
 }

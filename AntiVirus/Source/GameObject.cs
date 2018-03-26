@@ -10,13 +10,10 @@ namespace AntiVirus.Source
 {
     public abstract class GameObject
     {
-        protected Vector2 position;
+        // protected Vector2 position;
         protected Vector2 size;
 
-        public Vector2 Position
-        {
-            get { return this.position; }
-        }
+        public Vector2 Position { get; set; }
 
         public Vector2 Size
         {
@@ -29,7 +26,7 @@ namespace AntiVirus.Source
 
 		public virtual void Translate(Vector2 translationVector)
 		{
-			this.position += translationVector;
+			this.Position += translationVector;
 		}
 
 		public virtual void ReachedDestination()

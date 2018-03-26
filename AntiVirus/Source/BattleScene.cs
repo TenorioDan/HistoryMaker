@@ -18,6 +18,8 @@ namespace AntiVirus.Source
 	/// </summary>
 	class BattleScene
 	{
+		private BattleSceneUI UI;
+
 		private TileManager tileManager;
 		private Character mainCharacter;
 		private Character jesusChrist;
@@ -26,6 +28,7 @@ namespace AntiVirus.Source
 		private Character georgeWashington;
 
 		public List<Character> party;
+		public List<Character> enemies;
 		public Queue<Character> turnQueue;
 
 		private Character currentCharacter;
@@ -50,6 +53,8 @@ namespace AntiVirus.Source
 		Texture2D testLevelTileSheet;
 		#endregion
 
+		
+
 		/// <summary>
 		///  Initialize all manager classes in this level. Manager classes switch between
 		///  battle scenes and overworld scenes
@@ -70,6 +75,7 @@ namespace AntiVirus.Source
 
 		public void LoadContent(ContentManager Content)
 		{
+		
 			// Load all the sprite sheets
 			testCharacterSpriteSheet = Content.Load<Texture2D>("Images/character_test");
 			jesusSpriteSheet = Content.Load<Texture2D>("Images/Characters/sprites_characters_jesus1");
@@ -78,8 +84,11 @@ namespace AntiVirus.Source
 			washingtonSpriteSheet = Content.Load<Texture2D>("Images/Characters/sprites_characters_washington1");
 			testLevelTileSheet = Content.Load<Texture2D>("Images/TileSets/PathAndObjects");
 			cursorTexture = Content.Load<Texture2D>("Images/UI/Cursor");
-			// Load UI Elements
 
+			// Create the board
+			tileManager = new TileManager(20, 15, testLevelTileSheet);
+			UI = new BattleSceneUI();
+			UI.LoadContent(Content);
 
 			// Create the character objects after their respective spritesheets have been loaded
 			// Each playable characte object will have a UI Select associated with them for either choosing them
@@ -87,21 +96,22 @@ namespace AntiVirus.Source
 			mainCharacter = new MainCharacter(testCharacterSpriteSheet);
 			mainCharacter.UICharacterSelect.UIClicked += SetCurrentCharacter;
 			buttons.Add(mainCharacter.UICharacterSelect);
+			tileManager.SetObjectToTilePosition(mainCharacter, new Vector2(0, 0));
 
 			albertEinstein = new AlbertEinstein(einsteinSpriteSheet);
 			albertEinstein.UICharacterSelect.UIClicked += SetCurrentCharacter;
 			buttons.Add(albertEinstein.UICharacterSelect);
-			albertEinstein.Translate(new Vector2(320, 320));
+			tileManager.SetObjectToTilePosition(albertEinstein, new Vector2(320, 320));
 
 			jesusChrist = new JesusChrist(jesusSpriteSheet);
 			jesusChrist.UICharacterSelect.UIClicked += SetCurrentCharacter;
 			buttons.Add(jesusChrist.UICharacterSelect);
-			jesusChrist.Translate(new Vector2(64, 64));
+			tileManager.SetObjectToTilePosition(jesusChrist, new Vector2(64, 64));
 
 			georgeWashington = new GeorgeWashingon(washingtonSpriteSheet);
 			georgeWashington.UICharacterSelect.UIClicked += SetCurrentCharacter;
 			buttons.Add(georgeWashington.UICharacterSelect);
-			georgeWashington.Translate(new Vector2(0, 64));
+			tileManager.SetObjectToTilePosition(georgeWashington, new Vector2(0, 64));
 
 			// party data
 			Random initiativeRoll = new Random();
@@ -110,23 +120,24 @@ namespace AntiVirus.Source
 			albertEinstein.Initiative = initiativeRoll.Next(0, 10);
 			georgeWashington.Initiative = initiativeRoll.Next(0, 10);
 
+			Console.WriteLine("{0} {1} {2} {3}", mainCharacter.Initiative, jesusChrist.Initiative, albertEinstein.Initiative, georgeWashington.Initiative);
+
 			party.Add(mainCharacter);
 			party.Add(jesusChrist);
 			party.Add(albertEinstein);
 			party.Add(georgeWashington);
 
-			turnQueue.Enqueue(mainCharacter);
-			turnQueue.Enqueue(jesusChrist);
-			turnQueue.Enqueue(albertEinstein);
-			turnQueue.Enqueue(georgeWashington);
+			List<Character> sortedList = new List<Character>();
+			sortedList.Add(mainCharacter);
+			sortedList.Add(jesusChrist);
+			sortedList.Add(albertEinstein);
+			sortedList.Add(georgeWashington);
+			sortedList.Sort((c1, c2) => c1.Initiative.CompareTo(c2.Initiative));
 
-			turnQueue.OrderBy(Character => Character.Initiative);
+			sortedList.ForEach(c => turnQueue.Enqueue(c));
 			currentCharacter = mainCharacter;
 
 			EndTurn();
-			// Set up the game
-			tileManager = new TileManager(20, 15, testLevelTileSheet);
-			//currentCharacter = mainCharacter;
 		}
 		
 		public void Update(GameTime gameTime)
@@ -157,6 +168,8 @@ namespace AntiVirus.Source
 			}
 
 			spriteBatch.Draw(cursorTexture, cursorPosition, Color.White);
+
+			UI.Draw(spriteBatch, camera);
 
 			spriteBatch.End();
 		}
@@ -217,6 +230,8 @@ namespace AntiVirus.Source
 					Vector2 mousePosition = new Vector2(mouseState.Position.X, mouseState.Position.Y);
 					Vector2 worldPosition = mousePosition + camera.GetScaledPosition();
 					tileManager.MoveObjectToTileAtPosition(currentCharacter, cursorPosition);
+
+					UI.CurrentActionPoints = currentCharacter.ActionPoints;
 				}
 			}
 		}
@@ -228,9 +243,12 @@ namespace AntiVirus.Source
 
 		private void EndTurn()
 		{
-			currentCharacter.ActionPoints = 2;
+			currentCharacter.ResetActionPoints();
 			currentCharacter = turnQueue.Dequeue();
 			turnQueue.Enqueue(currentCharacter);
+
+			UI.CurrentCharacterName = currentCharacter.CharacterName;
+			UI.CurrentActionPoints = currentCharacter.ActionPoints;
 		}
 
 		#region Events
